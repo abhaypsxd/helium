@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/abhay/compiler/helium/src/main.cpp
+iostream
+-
+fstream
+-
+string
+-
+sstream
+-
+optional
+-
+vector
+-
+
