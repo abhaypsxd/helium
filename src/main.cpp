@@ -4,64 +4,9 @@
 #include <sstream>
 #include <optional>
 #include <vector>
+#include "tokenization.hpp"
+
 using namespace std;
-
-enum class TokenType{
-    _return,
-    int_lit,
-    semi
-};
-
-struct Token{
-    TokenType type;
-    optional<string> value{};
-
-};
-
-vector<Token> tokenize(const string& str){
-    string buf;
-    vector<Token>tokens {};
-    for(int i = 0; i<str.length(); i++){
-        char c = str[i];
-        if(isalpha(c)){
-            while(isalnum(str[i])){
-                buf.push_back(str[i]);
-                i++;
-            }
-            i--;
-            if(buf == "return"){
-                tokens.push_back({.type = TokenType::_return});
-                buf.clear();
-                continue;
-            }
-            else{
-                cerr<<"Wrong syntax!"<<endl;
-                exit(EXIT_FAILURE);
-            }
-        }
-        else if(isspace(c)){
-            continue;
-        }
-        else if (isdigit(c)){;
-            while(isdigit(str[i])){
-                buf.push_back(str[i]);
-                i++;
-            }
-            i--;
-            tokens.push_back({.type = TokenType::int_lit, .value = buf});
-            buf.clear();
-            continue;
-        }
-        else if(c==';'){
-            tokens.push_back({.type = TokenType::semi});
-        }
-        else{
-            cerr<<"Wrong syntax!"<<endl;
-            exit(EXIT_FAILURE);
-        }
-    }
-    return tokens; 
-}
 
 string tokens_to_asm(const vector<Token>&tokens){
     stringstream output;
@@ -69,7 +14,7 @@ string tokens_to_asm(const vector<Token>&tokens){
     output << "global _start\n_start:\n";
     for(int i = 0; i<tokens.size(); i++){
         const Token& token = tokens.at(i);
-        if(token.type==TokenType::_return){
+        if(token.type==TokenType::exit){
             if(i+1<tokens.size()&&tokens.at(i+1).type==TokenType::int_lit){
                 if(i+2<tokens.size()&&tokens.at(i+2).type==TokenType::semi){
                     Token number = tokens.at(i+1);
@@ -97,7 +42,9 @@ int main(int argc, char* argv[]){
         input_stream<<input_file.rdbuf();
         contents = input_stream.str();
     }
-    vector<Token>tokens=tokenize(contents);
+    Tokenizer tokenizer(contents);
+
+    vector<Token>tokens=tokenizer.tokenize();
 
     {
         fstream file("./out.asm", ios::out);
