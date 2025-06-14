@@ -16,9 +16,9 @@ struct Token{
 class Tokenizer{
 private:
     const std::string m_src;
-    int m_index = 0;
+    size_t m_index = 0;
     
-    [[nodiscard]] std::optional<char>peak(int ahead = 0) const {
+    [[nodiscard]] inline std::optional<char>peak(int ahead = 0) const {
         if(m_index+ahead>=m_src.length()){
             return {};
         }
@@ -27,7 +27,7 @@ private:
         }
     }
 
-    char consume(){
+    inline char consume(){
         return m_src.at(m_index++);
     }
 
