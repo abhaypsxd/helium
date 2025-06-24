@@ -1,1 +1,4 @@
-return 21;
+let x = 14;
+let y = x;
+let z = y;
+exit(z);

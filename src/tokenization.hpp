@@ -7,7 +7,7 @@
 #include <vector>
 
 
-enum class TokenType{exit, int_lit, semi};
+enum class TokenType{exit, int_lit, semi, open_paren, closed_paren, ident, let, eq};
 struct Token{
     TokenType type;
     std::optional<std::string> value{};
@@ -18,7 +18,7 @@ private:
     const std::string m_src;
     size_t m_index = 0;
     
-    [[nodiscard]] inline std::optional<char>peak(int ahead = 0) const {
+    [[nodiscard]] inline std::optional<char>peek(int ahead = 0) const {
         if(m_index+ahead>=m_src.length()){
             return {};
         }
@@ -40,10 +40,10 @@ public:
         std::string buf;
         std::vector<Token>tokens {};
 
-        while(peak().has_value()){
-            if(std::isalpha(peak().value())){
+        while(peek().has_value()){
+            if(std::isalpha(peek().value())){
                 buf.push_back(consume());
-                while(peak().has_value()&&std::isalnum(peak().value())){
+                while(peek().has_value()&&std::isalnum(peek().value())){
                     buf.push_back(consume());
                 }
                 if(buf=="exit"){
@@ -51,30 +51,49 @@ public:
                     buf.clear();
                     continue;
                 }
+                else if(buf=="let"){
+                    tokens.push_back({.type = TokenType::let});
+                    buf.clear();
+                    continue;
+                }
                 else{
-                    std::cerr<<"Wrong syntax!"<<std::endl;
-                    exit(EXIT_FAILURE);
+                    tokens.push_back({.type = TokenType::ident, .value = buf});
+                    buf.clear();
+                    continue;
                 }
             }
-            else if(std::isdigit(peak().value())){
+            else if(std::isdigit(peek().value())){
                 buf.push_back(consume());
-                while(peak().has_value()&&std::isdigit(peak().value())){
+                while(peek().has_value()&&std::isdigit(peek().value())){
                     buf.push_back(consume());
                 }
                 tokens.push_back({.type = TokenType::int_lit, .value = buf});
                 buf.clear();
                 continue;
             }
-            else if(peak().value()==';'){
+            else if(peek().value()=='('){
+                consume();
+                tokens.push_back({.type = TokenType::open_paren});
+            }
+            else if(peek().value()==')'){
+                consume();
+                tokens.push_back({.type = TokenType::closed_paren});
+            }
+            else if(peek().value()=='='){
+                consume();
+                tokens.push_back({.type = TokenType::eq});
+            }
+            else if(peek().value()==';'){
                 consume();
                 tokens.push_back({.type = TokenType::semi});
                 continue;
             }
-            else if(std::isspace(peak().value())){
+            else if(std::isspace(peek().value())){
                 consume();
                 continue;
             }
             else{
+                
                 std::cerr<<"Wrong syntax!"<<std::endl;
                 exit(EXIT_FAILURE);
             }

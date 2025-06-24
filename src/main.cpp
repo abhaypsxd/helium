@@ -31,17 +31,17 @@ int main(int argc, char* argv[]){
     vector<Token>tokens=tokenizer.tokenize();
 
     Parser parser(move(tokens));
-    optional<Node::Exit> tree = parser.parse();
+    optional<Node::Prog> prog = parser.parse_prog();
 
-    if(!tree.has_value()){
-        cerr<<"No exit statement found!"<<endl;
+    if(!prog.has_value()){
+        cerr<<"Invalid Program"<<endl;
         exit(EXIT_FAILURE);
     }
 
-    Generator generator(tree.value());
+    Generator generator(prog.value());
     {
         fstream file("./out.asm", ios::out);
-        file<<generator.generate();
+        file<<generator.gen_prog();
     }
 
     system("nasm -felf64 out.asm");

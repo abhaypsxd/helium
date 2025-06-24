@@ -3,9 +3,13 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/usr/include/c++/v1",         // for libc++
+                "/usr/include",                // base headers
+                "/usr/local/include"           // optional: for custom libs
             ],
             "defines": [],
+            "compilerPath": "/usr/bin/g++",    // <- Make sure this exists!
             "cStandard": "c17",
             "cppStandard": "c++20",
             "intelliSenseMode": "linux-gcc-x64"
