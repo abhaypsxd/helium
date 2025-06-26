@@ -51,7 +51,7 @@ public:
                 }
                 const auto& var = gen->m_vars.at(term_ident->ident.value.value());
                 std::stringstream offset;
-                offset<<"QWORD [rsp + "<<(gen->m_stack_size-var.stack_loc-1)*8<<"]\n";
+                offset<<"QWORD [rsp + "<<(gen->m_stack_size-var.stack_loc-1)*8<<"]";
                 gen->push(offset.str());
             }
             
