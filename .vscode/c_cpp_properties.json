@@ -4,15 +4,16 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include/c++/v1",         // for libc++
-                "/usr/include",                // base headers
-                "/usr/local/include"           // optional: for custom libs
+                "/usr/include/c++/v1",
+                "/usr/include",
+                "/usr/local/include"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/g++",    // <- Make sure this exists!
+            "compilerPath": "/usr/bin/g++",
             "cStandard": "c17",
             "cppStandard": "c++20",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
     "version": 4

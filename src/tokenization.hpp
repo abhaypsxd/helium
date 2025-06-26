@@ -7,7 +7,7 @@
 #include <vector>
 
 
-enum class TokenType{exit, int_lit, semi, open_paren, closed_paren, ident, let, eq};
+enum class TokenType{exit, int_lit, semi, open_paren, closed_paren, ident, let, eq, plus};
 struct Token{
     TokenType type;
     std::optional<std::string> value{};
@@ -82,6 +82,10 @@ public:
             else if(peek().value()=='='){
                 consume();
                 tokens.push_back({.type = TokenType::eq});
+            }
+            else if(peek().value()=='+'){
+                consume();
+                tokens.push_back({.type = TokenType::plus});
             }
             else if(peek().value()==';'){
                 consume();

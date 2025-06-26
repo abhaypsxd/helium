@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/abhay/compiler/helium/build",
+  "command": "/usr/bin/g++    -g   -std=gnu++2a -o CMakeFiles/helium.dir/src/main.cpp.o -c /home/abhay/compiler/helium/src/main.cpp",
+  "file": "/home/abhay/compiler/helium/src/main.cpp"
+}
+]

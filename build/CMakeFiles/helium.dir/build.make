@@ -60,15 +60,15 @@ include CMakeFiles/helium.dir/flags.make
 CMakeFiles/helium.dir/src/main.cpp.o: CMakeFiles/helium.dir/flags.make
 CMakeFiles/helium.dir/src/main.cpp.o: ../src/main.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/abhay/compiler/helium/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/helium.dir/src/main.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/helium.dir/src/main.cpp.o -c /home/abhay/compiler/helium/src/main.cpp
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/helium.dir/src/main.cpp.o -c /home/abhay/compiler/helium/src/main.cpp
 
 CMakeFiles/helium.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/helium.dir/src/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/abhay/compiler/helium/src/main.cpp > CMakeFiles/helium.dir/src/main.cpp.i
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/abhay/compiler/helium/src/main.cpp > CMakeFiles/helium.dir/src/main.cpp.i
 
 CMakeFiles/helium.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/helium.dir/src/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/abhay/compiler/helium/src/main.cpp -o CMakeFiles/helium.dir/src/main.cpp.s
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/abhay/compiler/helium/src/main.cpp -o CMakeFiles/helium.dir/src/main.cpp.s
 
 # Object files for target helium
 helium_OBJECTS = \

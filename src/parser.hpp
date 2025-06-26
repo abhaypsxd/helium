@@ -9,8 +9,8 @@
 #include "arena.hpp"
 
 namespace Node {
-    struct ExprIntLit { Token int_lit; };
-    struct ExprIdent  { Token ident;   };
+    struct TermIntLit { Token int_lit; };
+    struct TermIdent  { Token ident;   };
     struct Expr;
     
     struct BinExprAdd{
@@ -22,10 +22,15 @@ namespace Node {
         Expr* rhs;
     };
     struct BinExpr{
-        std::variant<BinExprAdd*,BinExprMulti*>var;
+        BinExprAdd* add;
     };
+
+    struct Term{
+        std::variant<TermIntLit*, TermIdent*>var;
+    };
+
     struct Expr {
-        std::variant<ExprIntLit*, ExprIdent*, BinExpr*> var;
+        std::variant<Term*,  BinExpr*> var;
     };
 
 
@@ -68,22 +73,67 @@ public:
 
     }
 
-    std::optional<Node::Expr*>parse_expr(){
+    std::optional<Node::BinExpr*> parse_bin_expr(){
+        if(auto lhs = parse_expr()){
+            
+        }
+        else{
+            return {};
+        }
+    }
+
+    std::optional<Node::Term*>parse_term(){
         if(peek().has_value()&&peek().value().type==TokenType::int_lit){ 
-            auto node_expr_int_lit = m_allocator.alloc<Node::ExprIntLit>();
-            node_expr_int_lit->int_lit = consume();
-            auto node_expr = m_allocator.alloc<Node::Expr>();
-            node_expr->var = node_expr_int_lit;
-            return node_expr;
+            auto node_term_int_lit = m_allocator.alloc<Node::TermIntLit>();
+            node_term_int_lit->int_lit = consume();
+            auto node_term = m_allocator.alloc<Node::Term>();
+            node_term->var = node_term_int_lit;
+            return node_term;
         }
         else if(peek().has_value()&&peek().value().type==TokenType::ident){
-            auto node_expr_ident = m_allocator.alloc<Node::ExprIdent>();
-            node_expr_ident->ident = consume();
-            auto node_expr = m_allocator.alloc<Node::Expr>();
-            node_expr->var = node_expr_ident;
-            return node_expr;
+            auto node_term_ident = m_allocator.alloc<Node::TermIdent>();
+            node_term_ident->ident = consume();
+            auto node_term = m_allocator.alloc<Node::Term>();
+            node_term->var = node_term_ident;
+            return node_term;
         }
-        else return {};
+        else{
+            return {};
+        }
+    }
+
+    std::optional<Node::Expr*>parse_expr(){
+        if(auto term = parse_term()){
+            if(peek().has_value()&&peek().value().type==TokenType::plus){
+                auto bin_expr = m_allocator.alloc<Node::BinExpr>();
+                auto bin_expr_add = m_allocator.alloc<Node::BinExprAdd>();
+                auto lhs_expr = m_allocator.alloc<Node::Expr>();
+                lhs_expr->var = term.value();
+
+                bin_expr_add->lhs = lhs_expr;
+                
+                consume();
+                if(auto rhs = parse_expr()){
+                    bin_expr_add->rhs=rhs.value();
+                    bin_expr->add = bin_expr_add;
+                    auto expr = m_allocator.alloc<Node::Expr>();
+                    expr->var = bin_expr;
+                    return expr;
+                }
+                else{
+                    std::cerr<<"Expected expression"<<std::endl;
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else{
+                auto expr = m_allocator.alloc<Node::Expr>();
+                expr->var = term.value();
+                return expr;
+            }
+        }
+        else{
+            return {};
+        }
 
     }
 
@@ -142,14 +192,16 @@ public:
 
         if (auto expr = parse_expr()) {
             stmt_let->expr = expr.value();
-        } else {
+        }
+        else {
             std::cerr << "Invalid expression in let statement." << std::endl;
             exit(EXIT_FAILURE);
         }
-
-        if (auto token = peek(); token && token->type == TokenType::semi) {
+        auto token = peek();
+        if (token && token->type == TokenType::semi) {
             consume(); // ';'
-        } else {
+        }
+        else {
             std::cerr << "Expected ';' after let statement." << std::endl;
             exit(EXIT_FAILURE);
         }

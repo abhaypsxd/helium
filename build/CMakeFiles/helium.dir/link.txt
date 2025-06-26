@@ -1,1 +1,1 @@
-/usr/bin/c++     CMakeFiles/helium.dir/src/main.cpp.o  -o helium 
+/usr/bin/g++  -g   CMakeFiles/helium.dir/src/main.cpp.o  -o helium 

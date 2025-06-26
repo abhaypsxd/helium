@@ -37,34 +37,50 @@ public:
 
     }
 
-    void gen_expr(const Node::Expr& expr) {
+    void gen_term(const Node::Term* term){
+        struct TermVisitor{
+            Generator* gen;
+            void operator()(const Node::TermIntLit* term_int_lit)const{
+                gen->m_output<<"    mov rax, "<<term_int_lit->int_lit.value.value()<<"\n";
+                gen->push("rax");
+            }
+            void operator()(const Node::TermIdent* term_ident){
+                if(!gen->m_vars.contains(term_ident->ident.value.value())){
+                    std::cerr<<"Undeclared Identifier: "<<term_ident->ident.value.value()<<std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                const auto& var = gen->m_vars.at(term_ident->ident.value.value());
+                std::stringstream offset;
+                offset<<"QWORD [rsp + "<<(gen->m_stack_size-var.stack_loc-1)*8<<"]\n";
+                gen->push(offset.str());
+            }
+            
+        };
+        TermVisitor visitor({.gen = this});
+        std::visit(visitor,term->var);
+    }
+
+    void gen_expr(const Node::Expr* expr) {
 
         struct ExprVisitor{
 
             Generator* gen;
             // explicit ExprVisitor(Generator* gen):gen(gen){}
 
-            void operator()(const Node::ExprIntLit* expr_int_lit)const{
-                gen->m_output<<"    mov rax, "<<expr_int_lit->int_lit.value.value()<<"\n";
-                gen->push("rax");
-                // gen->m_output<<"    push rax\n";
-            }
-            void operator()(const Node::ExprIdent* exp_ident){
-                if(!gen->m_vars.contains(exp_ident->ident.value.value())){
-                    std::cerr<<"Undeclared Identifier: "<<exp_ident->ident.value.value()<<std::endl;
-                    exit(EXIT_FAILURE);
-                }
-                const auto& var = gen->m_vars.at(exp_ident->ident.value.value());
-                std::stringstream offset;
-                offset<<"QWORD [rsp + "<<(gen->m_stack_size-var.stack_loc-1)*8<<"]\n";
-                gen->push(offset.str());
+            void operator()(const Node::Term* term)const{
+                gen->gen_term(term);
             }
             void operator()(const Node::BinExpr* bin_expr) const {
-                assert(false);
+                gen->gen_expr(bin_expr->add->lhs);
+                gen->gen_expr(bin_expr->add->rhs);
+                gen->pop("rax");
+                gen->pop("rbx");
+                gen->m_output<<"    add rax, rbx\n";
+                gen->push("rax");
             }
         };
         ExprVisitor visitor{.gen = this};
-        std::visit(visitor, expr.var);
+        std::visit(visitor, expr->var);
     }
 
     void gen_stmt(const Node::Stmt* stmt) {
@@ -73,7 +89,7 @@ public:
 
 
             void operator()(const Node::StmtExit* stmt_exit)const{
-                gen->gen_expr(*stmt_exit->expr);
+                gen->gen_expr(stmt_exit->expr);
                 gen->m_output<<"    mov rax, 60\n";
                 gen->pop("rdi");
                 // gen->m_output<<"    pop rdi\n";
@@ -85,7 +101,7 @@ public:
                     exit(EXIT_FAILURE);
                 }
                 gen->m_vars.insert({stmt_let->ident.value.value(), Var{.stack_loc = gen->m_stack_size}});
-                gen->gen_expr(*stmt_let->expr);
+                gen->gen_expr(stmt_let->expr);
             } 
         };
 

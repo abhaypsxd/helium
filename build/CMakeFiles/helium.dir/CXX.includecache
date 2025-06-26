@@ -6,12 +6,22 @@
 
 #IncludeRegexTransform: 
 
+/home/abhay/compiler/helium/src/arena.hpp
+stddef.h
+-
+cstdlib
+-
+cstddef
+-
+
 /home/abhay/compiler/helium/src/generation.hpp
 string
 -
 sstream
 -
 unordered_map
+-
+assert.h
 -
 parser.hpp
 /home/abhay/compiler/helium/src/parser.hpp
@@ -35,6 +45,8 @@ parser.hpp
 /home/abhay/compiler/helium/src/parser.hpp
 generation.hpp
 /home/abhay/compiler/helium/src/generation.hpp
+arena.hpp
+/home/abhay/compiler/helium/src/arena.hpp
 
 /home/abhay/compiler/helium/src/parser.hpp
 vector
@@ -47,6 +59,8 @@ variant
 -
 tokenization.hpp
 /home/abhay/compiler/helium/src/tokenization.hpp
+arena.hpp
+/home/abhay/compiler/helium/src/arena.hpp
 
 /home/abhay/compiler/helium/src/tokenization.hpp
 iostream
