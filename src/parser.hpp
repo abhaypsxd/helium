@@ -21,8 +21,13 @@ namespace Node {
         Expr* lhs;
         Expr* rhs;
     };
+    struct BinExprSub{
+        Expr* lhs;
+        Expr* rhs;
+    };
+    
     struct BinExpr{
-        BinExprAdd* add;
+        std::variant<BinExprAdd*, BinExprSub*>var;
     };
 
     struct Term{
@@ -136,7 +141,28 @@ public:
                 // consume();
                 if(auto rhs = parse_expr()){
                     bin_expr_add->rhs=rhs.value();
-                    bin_expr->add = bin_expr_add;
+                    bin_expr->var = bin_expr_add;
+                    auto expr = m_allocator.alloc<Node::Expr>();
+                    expr->var = bin_expr;
+                    return expr;
+                }
+                else{
+                    std::cerr<<"Expected expression"<<std::endl;
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if(try_consume(TokenType::minus).has_value()){
+                auto bin_expr = m_allocator.alloc<Node::BinExpr>();
+                auto bin_expr_sub = m_allocator.alloc<Node::BinExprSub>();
+                auto lhs_expr = m_allocator.alloc<Node::Expr>();
+                lhs_expr->var = term.value();
+
+                bin_expr_sub->lhs = lhs_expr;
+                
+                // consume();
+                if(auto rhs = parse_expr()){
+                    bin_expr_sub->rhs=rhs.value();
+                    bin_expr->var = bin_expr_sub;
                     auto expr = m_allocator.alloc<Node::Expr>();
                     expr->var = bin_expr;
                     return expr;
