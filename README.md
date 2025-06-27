@@ -32,10 +32,25 @@ factor      ::= INT | IDENT | "(" expression ")"
 
 ## Build Instructions
 
+Build Helium using CMake. Ensure you have CMake installed, then run the following command in the terminal:
 ```sh
-make run FILE=example.he
+cmake --build/build
+```
+Compile the source code with:
+```sh
+./build/helium ./test.he
+```
+Run the generated assembly code with:
+```sh
+./out
+```
+View the exit code with:
+```sh
+echo $?
 ```
 
+
+## Overview
 This assumes the use of a `Makefile` that automates the following steps:
 
 1. Tokenize, parse and compile the `.he` source file into `out.asm`
