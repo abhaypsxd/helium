@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include <variant>
+#include <unordered_map>
 
 #include "tokenization.hpp"
 #include "arena.hpp"
@@ -25,9 +26,17 @@ namespace Node {
         Expr* lhs;
         Expr* rhs;
     };
+    struct BinExprDiv{
+        Expr* lhs;
+        Expr* rhs;
+    };
+    struct BinExprMod{
+        Expr* lhs;
+        Expr* rhs;
+    };
     
     struct BinExpr{
-        std::variant<BinExprAdd*, BinExprSub*>var;
+        std::variant<BinExprAdd*, BinExprSub*, BinExprMulti*, BinExprDiv*, BinExprMod*>var;
     };
 
     struct Term{
@@ -51,6 +60,21 @@ namespace Node {
 }
 
 
+enum class Assoc {Left, Right};
+struct BinOpInfo{
+    int precedence;
+    Assoc assoc;
+};
+
+const std::unordered_map<TokenType, BinOpInfo>binop_info={
+
+    {TokenType::plus, {100, Assoc::Left}},
+    {TokenType::minus, {100, Assoc::Left}},
+    {TokenType::multi, {200, Assoc::Left}},
+    {TokenType::div, {200, Assoc::Left}},
+    {TokenType::mod, {200, Assoc::Left}},
+
+};
 
 
 class Parser{
@@ -128,59 +152,118 @@ public:
         }
     }
 
-    std::optional<Node::Expr*>parse_expr(){
-        if(auto term = parse_term()){
-            if(try_consume(TokenType::plus).has_value()){
-                auto bin_expr = m_allocator.alloc<Node::BinExpr>();
-                auto bin_expr_add = m_allocator.alloc<Node::BinExprAdd>();
-                auto lhs_expr = m_allocator.alloc<Node::Expr>();
-                lhs_expr->var = term.value();
+    std::optional<Node::Expr*>parse_expr_prec(int min_prec = 0){
+        if(auto lhs_term = parse_term()){
+            auto lhs_expr = m_allocator.alloc<Node::Expr>();
+            lhs_expr->var=lhs_term.value();
+            while(true){
+                auto op_token = peek();
+                if (!op_token.has_value() || binop_info.find(op_token->type) == binop_info.end())break;
 
-                bin_expr_add->lhs = lhs_expr;
-                
-                // consume();
-                if(auto rhs = parse_expr()){
-                    bin_expr_add->rhs=rhs.value();
-                    bin_expr->var = bin_expr_add;
-                    auto expr = m_allocator.alloc<Node::Expr>();
-                    expr->var = bin_expr;
-                    return expr;
-                }
-                else{
-                    std::cerr<<"Expected expression"<<std::endl;
+                const auto& [prec, assoc] = binop_info.at(op_token->type);
+                if(prec<min_prec)break;
+                consume();
+                int next_min_prec = assoc==Assoc::Left?prec+1:prec;
+                auto rhs_expr = parse_expr_prec(next_min_prec);
+                if (!rhs_expr) {
+                    std::cerr << "Expected expression after operator\n";
                     exit(EXIT_FAILURE);
                 }
-            }
-            else if(try_consume(TokenType::minus).has_value()){
                 auto bin_expr = m_allocator.alloc<Node::BinExpr>();
-                auto bin_expr_sub = m_allocator.alloc<Node::BinExprSub>();
-                auto lhs_expr = m_allocator.alloc<Node::Expr>();
-                lhs_expr->var = term.value();
-
-                bin_expr_sub->lhs = lhs_expr;
-                
-                // consume();
-                if(auto rhs = parse_expr()){
-                    bin_expr_sub->rhs=rhs.value();
-                    bin_expr->var = bin_expr_sub;
-                    auto expr = m_allocator.alloc<Node::Expr>();
-                    expr->var = bin_expr;
-                    return expr;
+                if(op_token->type==TokenType::plus){
+                    auto bin_expr_add = m_allocator.alloc<Node::BinExprAdd>();
+                    bin_expr_add->lhs = lhs_expr;
+                    bin_expr_add->rhs = rhs_expr.value();
+                    bin_expr->var=bin_expr_add;
                 }
-                else{
-                    std::cerr<<"Expected expression"<<std::endl;
-                    exit(EXIT_FAILURE);
+                else if(op_token->type == TokenType::minus){
+                    auto bin_expr_sub = m_allocator.alloc<Node::BinExprSub>();
+                    bin_expr_sub->lhs = lhs_expr;
+                    bin_expr_sub->rhs = rhs_expr.value();
+                    bin_expr->var=bin_expr_sub;
                 }
+                else if(op_token->type == TokenType::multi){
+                    auto bin_expr_multi = m_allocator.alloc<Node::BinExprMulti>();
+                    bin_expr_multi->lhs = lhs_expr;
+                    bin_expr_multi->rhs = rhs_expr.value();
+                    bin_expr->var=bin_expr_multi;
+                }
+                else if(op_token->type == TokenType::div){
+                    auto bin_expr_div = m_allocator.alloc<Node::BinExprDiv>();
+                    bin_expr_div->lhs = lhs_expr;
+                    bin_expr_div->rhs = rhs_expr.value();
+                    bin_expr->var=bin_expr_div;
+                }
+                else if(op_token->type == TokenType::mod){
+                    auto bin_expr_mod = m_allocator.alloc<Node::BinExprMod>();
+                    bin_expr_mod->lhs = lhs_expr;
+                    bin_expr_mod->rhs = rhs_expr.value();
+                    bin_expr->var=bin_expr_mod;
+                }
+                lhs_expr = m_allocator.alloc<Node::Expr>();
+                lhs_expr->var = bin_expr; 
             }
-            else{
-                auto expr = m_allocator.alloc<Node::Expr>();
-                expr->var = term.value();
-                return expr;
-            }
+            return lhs_expr;
         }
         else{
             return {};
         }
+    }
+
+    std::optional<Node::Expr*>parse_expr(){
+        // if(auto term = parse_term()){
+        //     if(try_consume(TokenType::plus).has_value()){
+        //         auto bin_expr = m_allocator.alloc<Node::BinExpr>();
+        //         auto bin_expr_add = m_allocator.alloc<Node::BinExprAdd>();
+        //         auto lhs_expr = m_allocator.alloc<Node::Expr>();
+        //         lhs_expr->var = term.value();
+
+        //         bin_expr_add->lhs = lhs_expr;
+                
+        //         // consume();
+        //         if(auto rhs = parse_expr()){
+        //             bin_expr_add->rhs=rhs.value();
+        //             bin_expr->var = bin_expr_add;
+        //             auto expr = m_allocator.alloc<Node::Expr>();
+        //             expr->var = bin_expr;
+        //             return expr;
+        //         }
+        //         else{
+        //             std::cerr<<"Expected expression"<<std::endl;
+        //             exit(EXIT_FAILURE);
+        //         }
+        //     }
+        //     else if(try_consume(TokenType::minus).has_value()){
+        //         auto bin_expr = m_allocator.alloc<Node::BinExpr>();
+        //         auto bin_expr_sub = m_allocator.alloc<Node::BinExprSub>();
+        //         auto lhs_expr = m_allocator.alloc<Node::Expr>();
+        //         lhs_expr->var = term.value();
+
+        //         bin_expr_sub->lhs = lhs_expr;
+                
+        //         // consume();
+        //         if(auto rhs = parse_expr()){
+        //             bin_expr_sub->rhs=rhs.value();
+        //             bin_expr->var = bin_expr_sub;
+        //             auto expr = m_allocator.alloc<Node::Expr>();
+        //             expr->var = bin_expr;
+        //             return expr;
+        //         }
+        //         else{
+        //             std::cerr<<"Expected expression"<<std::endl;
+        //             exit(EXIT_FAILURE);
+        //         }
+        //     }
+        //     else{
+        //         auto expr = m_allocator.alloc<Node::Expr>();
+        //         expr->var = term.value();
+        //         return expr;
+        //     }
+        // }
+        // else{
+        //     return {};
+        // }
+        return parse_expr_prec(0);
 
     }
 

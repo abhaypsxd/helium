@@ -48,13 +48,39 @@ public:
                 gen->m_output<<"    add rax, rbx\n";
                 gen->push("rax");
             }
-            void operator()(const Node::BinExprSub* bin_expr_sub){
+            void operator()(const Node::BinExprSub* bin_expr_sub) const{
                 gen->gen_expr(bin_expr_sub->lhs);
                 gen->gen_expr(bin_expr_sub->rhs);
                 gen->pop("rbx");
                 gen->pop("rax");
                 gen->m_output<<"    sub rax, rbx\n";
                 gen->push("rax");
+            }
+            void operator()(const Node::BinExprMulti* bin_expr_multi) const{
+                gen->gen_expr(bin_expr_multi->lhs);
+                gen->gen_expr(bin_expr_multi->rhs);
+                gen->pop("rbx");
+                gen->pop("rax");
+                gen->m_output<<"    imul rax, rbx\n";
+                gen->push("rax");
+            }
+            void operator()(const Node::BinExprDiv* bin_expr_div){
+                gen->gen_expr(bin_expr_div->lhs);
+                gen->gen_expr(bin_expr_div->rhs);
+                gen->pop("rbx");
+                gen->pop("rax");
+                gen->m_output<<"    xor rax, rbx\n";
+                gen->m_output<<"    div rbx\n";
+                gen->push("rax");
+            }
+            void operator()(const Node::BinExprMod* bin_expr_mod){
+                gen->gen_expr(bin_expr_mod->lhs);
+                gen->gen_expr(bin_expr_mod->rhs);
+                gen->pop("rbx");
+                gen->pop("rax");
+                gen->m_output<<"    xor rax, rbx\n";
+                gen->m_output<<"    div rbx\n";
+                gen->push("rdx");
             }
         };
         BinExprVisitor visitor({.gen = this});
