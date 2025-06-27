@@ -1,96 +1,74 @@
-# Helium
+# Helium: A Minimal Language
 
-**Helium** is a small, expression-based programming language built from scratch as a learning project. It supports arithmetic expressions, variables, operator precedence, and basic `exit()` statements.
+Helium is a simple expression-based, stack-machine-oriented language designed to help understand the core principles of compilation. It supports basic arithmetic operations, variable declarations, and the ability to exit with an expression-based return code.
 
-This project is not intended for general use. It's a personal educational playground to learn the internals of compilers, parsers, and interpreters.
+## Features
 
----
+- Arithmetic expressions with proper precedence and associativity
+- Variable declarations and usage
+- `exit()` for terminating the program with an integer value
+- Parentheses for grouping expressions
+- Generates x86-64 NASM assembly
 
-## ✨ Features
+## Example
 
-- Integer literals and identifiers
-- `let` bindings (variable declaration)
-- Arithmetic expressions with:
-  - Addition (`+`)
-  - Subtraction (`-`)
-  - Multiplication (`*`)
-  - Division (`/`)
-  - Modulus (`%`)
-- Parentheses for grouping
-- `exit(expr);` to terminate and evaluate an expression
-- Operator precedence and associativity handling
-
----
-
-## 🧾 Example Code
-
-```c
+```helium
 let x = 8;
-let y = 7;
-let z = x % y + 2 * (x - 3);
+let y = 3;
+let z = x % (y + 1) * 2;
 exit(z);
 ```
 
----
-
-## 📜 Grammar (EBNF Style)
+## Grammar
 
 ```ebnf
 program     ::= { statement }
-
 statement   ::= "let" IDENT "=" expression ";" 
-             | "exit" "(" expression ")" ";"
-
-expression  ::= term { binary_op term }
-
-term        ::= INT_LIT 
-             | IDENT 
-             | "(" expression ")"
-
-binary_op   ::= "+" | "-" | "*" | "/" | "%"
-
-IDENT       ::= [a-zA-Z_][a-zA-Z0-9_]*
-INT_LIT     ::= [0-9]+
+             |  "exit" "(" expression ")" ";"
+expression  ::= term { ( "+" | "-" ) term }
+term        ::= factor { ( "*" | "/" | "%" ) factor }
+factor      ::= INT | IDENT | "(" expression ")"
 ```
 
----
+## Build Instructions
 
-## 🔧 Architecture
-
-- **Lexer**: Converts source code into a list of tokens (not shown here)
-- **Parser**: Builds an Abstract Syntax Tree (AST) using:
-  - Operator precedence climbing
-  - Arena allocation for fast memory management
-- **AST Nodes**:
-  - `Expr`, `Term`, `BinExpr*`, `StmtLet`, `StmtExit`, etc.
-- **Interpreter**: Coming soon — will evaluate the AST and return values.
-
----
-
-## 📂 File Structure
-
-```
-├── tokenization.hpp    # Token types and lexer definitions
-├── arena.hpp           # Simple arena allocator
-├── parser.hpp          # Parser logic and AST construction
-├── main.cpp            # (Optional) Entry point for parsing & running code
+```sh
+make run FILE=example.hy
 ```
 
----
+This assumes the use of a `Makefile` that automates the following steps:
 
-## 🔮 Next Steps
+1. Tokenize, parse and compile the `.hy` source file into `out.asm`
+2. Assemble the output to `out.o` using NASM:
+   ```bash
+   nasm -felf64 out.asm
+   ```
+3. Link the object file with `ld` to create the final executable:
+   ```bash
+   ld -o out out.o
+   ```
+4. Run the resulting binary:
+   ```bash
+   ./out
+   ```
 
-- [x] Add parentheses support in expressions
-- [ ] Add evaluation logic for expressions and statements
-- [ ] Implement variable environment
-- [ ] Support comparisons (`<`, `>`, `==`, etc.)
-- [ ] Add `if` / `else` control flow
-- [ ] Experiment with functions and scopes
+## File Structure
 
----
+- `main.cpp`: Entry point. Handles file I/O, tokenization, parsing, codegen and compilation.
+- `tokenizer.hpp`: Converts input source code into tokens.
+- `parser.hpp`: Parses tokens into an abstract syntax tree (AST).
+- `arena.hpp`: Simple arena allocator to avoid heap fragmentation during AST construction.
+- `generation.hpp`: Code generator that outputs x86-64 assembly from AST.
+- `out.asm`: Generated NASM assembly.
+- `out`: Final compiled binary.
 
-## 🧑‍💻 Author
+## Requirements
 
-This project is developed and maintained as a hobby learning exercise.
+- C++17 or newer
+- NASM (Netwide Assembler)
+- GNU `ld` or compatible linker
+- A Unix-like system (Linux/macOS/WSL)
 
-If you're reading this and want to build a language too — go for it. It’s fun, and you’ll learn a lot!
+## License
+
+MIT License.
