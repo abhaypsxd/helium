@@ -33,12 +33,12 @@ factor      ::= INT | IDENT | "(" expression ")"
 ## Build Instructions
 
 ```sh
-make run FILE=example.hy
+make run FILE=example.he
 ```
 
 This assumes the use of a `Makefile` that automates the following steps:
 
-1. Tokenize, parse and compile the `.hy` source file into `out.asm`
+1. Tokenize, parse and compile the `.he` source file into `out.asm`
 2. Assemble the output to `out.o` using NASM:
    ```bash
    nasm -felf64 out.asm
