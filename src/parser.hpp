@@ -50,9 +50,10 @@ namespace Node {
 
     struct StmtExit    { Expr* expr;     };
     struct StmtLet     { Token ident; Expr* expr; };
+    struct StmtPrint   { Expr* expr;};
 
     struct Stmt {
-        std::variant<StmtExit*, StmtLet*> var;
+        std::variant<StmtExit*, StmtLet*, StmtPrint*> var;
     };
     struct Prog {
         std::vector<Stmt*> stmts;
@@ -314,6 +315,28 @@ public:
 
         auto stmt = m_allocator.alloc<Node::Stmt>();
         stmt->var = stmt_exit;
+        return stmt;
+    }
+
+    if (token0 && token0->type == TokenType::print &&
+        token1 && token1->type == TokenType::open_paren) {
+
+        consume(); // 'print'
+        consume(); // '('
+
+        auto stmt_print = m_allocator.alloc<Node::StmtPrint>();
+
+        if (auto expr = parse_expr()) {
+            stmt_print->expr = expr.value();
+        } else {
+            std::cerr << "Invalid expression inside print()." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        try_consume(TokenType::closed_paren, "Expected ')' after expression.");
+        try_consume(TokenType::semi, "Expected ';' after print statement.");
+
+        auto stmt = m_allocator.alloc<Node::Stmt>();
+        stmt->var = stmt_print;
         return stmt;
     }
 

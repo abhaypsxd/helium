@@ -11,6 +11,55 @@
 class Generator{
 private:
 
+    void emit_print_int() {
+    static bool emitted = false;
+    if (emitted) return;
+    emitted = true;
+
+    m_output <<
+        "\nprint_int:\n"
+        "    push rbx\n"
+        "    push rcx\n"
+        "    push rdx\n"
+        "    push rsi\n"
+        "    sub rsp, 32\n"              // reserve buffer space
+        "    mov rsi, rsp\n"             // rsi = buffer start
+        "    mov rcx, rsi\n"
+        "    add rcx, 32\n"              // rcx = buffer end
+        "    mov rax, rdi\n"             // rax = number to print
+        "    mov rbx, 10\n"              // base 10\n"
+        ".print_loop:\n"
+        "    xor rdx, rdx\n"
+        "    div rbx\n"                  // divide rax by 10
+        "    add dl, '0'\n"              // convert remainder to ASCII
+        "    dec rcx\n"
+        "    mov [rcx], dl\n"
+        "    test rax, rax\n"
+        "    jnz .print_loop\n"
+        "    mov rdx, rsp\n"
+        "    add rdx, 32\n"              // end of buffer
+        "    sub rdx, rcx\n"             // rdx = number of bytes
+        "    mov rsi, rcx\n"             // rsi = string start
+        "    mov rax, 1\n"
+        "    mov rdi, 1\n"
+        "    syscall\n"
+        "    ; newline\n"
+        "    mov rax, 1\n"
+        "    mov rdi, 1\n"
+        "    lea rsi, [rel newline]\n"
+        "    mov rdx, 1\n"
+        "    syscall\n"
+        "    add rsp, 32\n"
+        "    pop rsi\n"
+        "    pop rdx\n"
+        "    pop rcx\n"
+        "    pop rbx\n"
+        "    ret\n"
+        "newline: db 0xA\n";
+}
+
+
+
     void push(const std::string& reg){
         m_output<<"    push "<<reg<<"\n";
         m_stack_size++;
@@ -147,7 +196,12 @@ public:
                 }
                 gen->m_vars.insert({stmt_let->ident.value.value(), Var{.stack_loc = gen->m_stack_size}});
                 gen->gen_expr(stmt_let->expr);
-            } 
+            }
+            void operator()(const Node::StmtPrint* stmt_print){
+                gen->gen_expr(stmt_print->expr);
+                gen->pop("rdi");
+                gen->m_output<<"    call print_int\n";
+            }
         };
 
         StmtVisitor visitor{.gen = this};
@@ -161,6 +215,8 @@ public:
         for(const Node::Stmt* stmt:m_prog.stmts){
             gen_stmt(stmt);
         }
+
+        emit_print_int();
         m_output<<"    mov rax, 60\n";
         m_output<<"    mov rdi, 0\n";
         m_output<<"    syscall\n";

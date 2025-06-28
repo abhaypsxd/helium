@@ -7,7 +7,7 @@
 #include <vector>
 
 
-enum class TokenType{exit, int_lit, semi, open_paren, closed_paren, ident, let, eq, plus, minus, multi, div, mod};
+enum class TokenType{exit, int_lit, semi, open_paren, closed_paren, ident, let, eq, plus, minus, multi, div, mod, print};
 struct Token{
     TokenType type;
     std::optional<std::string> value{};
@@ -53,6 +53,11 @@ public:
                 }
                 else if(buf=="let"){
                     tokens.push_back({.type = TokenType::let});
+                    buf.clear();
+                    continue;
+                }
+                else if(buf=="print"){
+                    tokens.push_back({.type = TokenType::print});
                     buf.clear();
                     continue;
                 }
