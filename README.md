@@ -16,6 +16,7 @@ Helium is a simple expression-based, stack-machine-oriented language designed to
 let x = 8;
 let y = 3;
 let z = x % (y + 1) * 2;
+print(x + y - z);
 exit(z);
 ```
 
@@ -25,6 +26,7 @@ exit(z);
 program     ::= { statement }
 statement   ::= "let" IDENT "=" expression ";" 
              |  "exit" "(" expression ")" ";"
+             |  "print" "(" expression ")" ";"
 expression  ::= term { ( "+" | "-" ) term }
 term        ::= factor { ( "*" | "/" | "%" ) factor }
 factor      ::= INT | IDENT | "(" expression ")"
@@ -83,7 +85,3 @@ This assumes the use of a `Makefile` that automates the following steps:
 - NASM (Netwide Assembler)
 - GNU `ld` or compatible linker
 - A Unix-like system (Linux/macOS/WSL)
-
-## License
-
-MIT License.
